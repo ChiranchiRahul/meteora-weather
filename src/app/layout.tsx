@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "Skylens — Weather by Rahul Chiranchi",
+  title: "Meteora — Weather by Rahul Chiranchi",
   description: "Weather & forecasts with CRUD and exports",
 };
 

@@ -1,75 +1,64 @@
+// src/app/api/requests/[id]/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { resolveLocation } from "@/lib/geocode";
-import { fetchWeather } from "@/lib/weather";
-import { dateRangeSchema } from "@/lib/validate";
+import { prisma } from "@/lib/db"; // <-- named import (matches your db.ts)
 
-type Params = { params: { id: string } };
+// Next.js passes params as a Promise in App Router handlers.
+// We'll define a Context type and always await context.params.
+type Context = { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, { params }: Params) {
+// GET /api/requests/[id]  -> fetch a single saved request
+export async function GET(_req: Request, context: Context) {
+  const { id } = await context.params;
+
   const row = await prisma.weatherRequest.findUnique({
-    where: { id: params.id },
-    include: { location: true, snapshot: true }
+    where: { id },
+    include: { location: true, snapshot: true },
   });
-  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (!row) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   return NextResponse.json(row);
 }
 
-export async function PATCH(req: Request, { params }: Params) {
-  try {
-    const body = await req.json();
-    const existing = await prisma.weatherRequest.findUnique({ where: { id: params.id }, include: { location: true } });
-    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+// PATCH /api/requests/[id] -> update dates/notes (with basic validation)
+export async function PATCH(req: Request, context: Context) {
+  const { id } = await context.params;
 
-    let loc = existing.location;
-    if (typeof body.input === "string" && body.input.trim().length > 0) {
-      const newLoc = await resolveLocation(body.input);
-      let l = await prisma.location.findFirst({ where: { name: newLoc.name, latitude: newLoc.latitude, longitude: newLoc.longitude }});
-      if (!l) {
-        l = await prisma.location.create({ data: {
-          userInput: body.input,
-          name: newLoc.name, latitude: newLoc.latitude, longitude: newLoc.longitude, source: newLoc.source
-        }});
-      }
-      loc = l;
+  const body = await req.json().catch(() => ({} as any));
+  const { dateStart, dateEnd, notes } = body ?? {};
+
+  if (dateStart && dateEnd) {
+    const ds = new Date(dateStart);
+    const de = new Date(dateEnd);
+    if (Number.isNaN(ds.getTime()) || Number.isNaN(de.getTime())) {
+      return NextResponse.json({ error: "Invalid date(s)" }, { status: 400 });
     }
-
-    let ds = existing.dateStart;
-    let de = existing.dateEnd;
-    if (body.dateStart || body.dateEnd) {
-      const parsed = dateRangeSchema.parse({
-        dateStart: body.dateStart ?? existing.dateStart,
-        dateEnd:   body.dateEnd   ?? existing.dateEnd,
-      });
-      ds = parsed.dateStart; de = parsed.dateEnd;
+    if (ds > de) {
+      return NextResponse.json(
+        { error: "Start date must be before end date" },
+        { status: 400 }
+      );
     }
-
-    const weather = await fetchWeather(loc.latitude, loc.longitude);
-    const snap = await prisma.weatherSnapshot.create({ data: { rawJson: weather as any }});
-
-    const updated = await prisma.weatherRequest.update({
-      where: { id: params.id },
-      data: {
-        locationId: loc.id,
-        dateStart: ds,
-        dateEnd: de,
-        snapshotId: snap.id,
-        notes: body.notes ?? existing.notes
-      },
-      include: { location: true, snapshot: true }
-    });
-
-    return NextResponse.json(updated);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "Update failed" }, { status: 500 });
   }
+
+  const updated = await prisma.weatherRequest.update({
+    where: { id },
+    data: {
+      ...(dateStart ? { dateStart: new Date(dateStart) } : {}),
+      ...(dateEnd ? { dateEnd: new Date(dateEnd) } : {}),
+      ...(typeof notes === "string" ? { notes } : {}),
+    },
+    include: { location: true, snapshot: true },
+  });
+
+  return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: Request, { params }: Params) {
-  try {
-    await prisma.weatherRequest.delete({ where: { id: params.id } });
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
-  }
+// DELETE /api/requests/[id] -> remove a request
+export async function DELETE(_req: Request, context: Context) {
+  const { id } = await context.params;
+
+  await prisma.weatherRequest.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }

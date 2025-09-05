@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id        String           @id @default(cuid())
+  userInput String
+  name      String
+  latitude  Float
+  longitude Float
+  source    String
+  createdAt DateTime         @default(now())
+  requests  WeatherRequest[]
+}
+
+model WeatherSnapshot {
+  id        String   @id @default(cuid())
+  rawJson   Json
+  createdAt DateTime @default(now())
+
+  // back-reference (1:1)
+  request WeatherRequest? @relation("RequestSnapshot")
+}
+
+model WeatherRequest {
+  id         String   @id @default(cuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+  dateStart  DateTime
+  dateEnd    DateTime
+  fetchedAt  DateTime @default(now())
+  provider   String
+
+  // 1:1 relation — FK must be unique on this side
+  snapshotId String?          @unique
+  snapshot   WeatherSnapshot? @relation("RequestSnapshot", fields: [snapshotId], references: [id])
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

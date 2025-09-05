@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --background: 255 255 255;
+  --foreground: 17 24 39;
+}
+
+.dark {
+  --background: 17 24 39;
+  --foreground: 255 255 255;
+}
+
+.bg-background { background-color: rgb(var(--background)); }
+.text-foreground { color: rgb(var(--foreground)); }
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: Arial, Helvetica, sans-serif;
+}

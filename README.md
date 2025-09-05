@@ -1,44 +1,49 @@
-# Meteora Weather App 🌤️
+# Meteora Weather App 🌤
 
-Full-stack weather application built as part of the **Tech Assessment – Software Engineer Intern (AI/ML Application)**.
+Full-stack weather application built as part of the *Tech Assessment – Software Engineer Intern (AI/ML Application)*.  
+Implements *TA1 (Weather Forecasting UI)* + *TA2 (Database + Export Functionality)*.
 
 ---
 
 ## ✅ Completed Assessments
 
 ### Tech Assessment 1 (Weather App)
-- Search weather by city / ZIP / coordinates / landmarks
-- Display **current weather** with useful details
-- Show **5-day forecast** by default
-- **Use my location** (via browser geolocation)
-- Styled UI with icons and an interactive **map view (Leaflet)**
+- Search weather by *city / ZIP / coordinates / landmarks*
+- Display *current weather* with temperature, humidity, wind, etc.
+- Show *5-day forecast by default*
+- *Use my location* (via browser geolocation)
+- Responsive UI styled with *TailwindCSS, **icons, and an interactive **map view (Leaflet)*
 
 ### Tech Assessment 2 (Advanced Weather App)
-- **CRUD with database (SQLite via Prisma ORM)**:
-  - **Create**: save requests with validated location & date ranges
-  - **Read**: view all previous requests in **History**
-  - **Update**: modify saved requests
-  - **Delete**: remove requests
-- **Validation**:
-  - Checks that location exists
-  - Ensures `dateStart ≤ dateEnd`
-- **Extra APIs**: interactive map (Leaflet / OpenStreetMap)
-- **Data Export**: JSON, CSV, XML, Markdown, PDF
+- *CRUD with database (Postgres via Prisma ORM)*:
+  - *Create*: save requests with validated location & date ranges  
+  - *Read: view all previous requests in **History*  
+  - *Update*: modify saved requests  
+  - *Delete*: remove requests  
+- *Validation (Zod + client-side checks)*:
+  - Location must exist  
+  - dateStart ≤ dateEnd enforced  
+- *Visuals & APIs*:
+  - Interactive map (Leaflet / OpenStreetMap)  
+  - Charts (Chart.js) for forecasts  
+- *Data Export*: JSON, CSV, XML, Markdown, PDF  
+- *Deployment Ready*: NeonDB (Postgres) + Prisma + Vercel
 
-👉 **Both TA1 + TA2 requirements are fully met.**
+👉 *Both TA1 + TA2 requirements are fully met.*
 
 ---
 
 ## 📦 Tech Stack
-- **Frontend:** Next.js 15 (App Router + Turbopack), React 19, Tailwind CSS  
-- **State/Data:** React Query, Zod (validation), date-fns  
-- **Backend/ORM:** Prisma + SQLite (local dev DB)  
-- **Visuals:** Leaflet (maps), Chart.js (charts)  
-- **Exports:** PDFKit, json2csv, xmlbuilder2, markdown-it  
+- *Frontend:* Next.js 15 (App Router + Turbopack), React 19, TailwindCSS 4  
+- *State/Data:* React Query, Zod (validation), date-fns  
+- *Backend/ORM:* Prisma ORM + PostgreSQL (NeonDB for prod, SQLite for local dev)  
+- *Visuals:* Leaflet (maps), Chart.js (charts)  
+- *Exports:* PDFKit, json2csv, xmlbuilder2, markdown-it  
+- *Deployment:* Vercel (with Prisma generate fix)
 
 ---
 
-## ⚙️ Setup & Requirements (Local)
+## ⚙ Setup & Requirements
 
 ```bash
 # 1. Clone repo
@@ -48,17 +53,18 @@ cd meteora-weather
 # 2. Install dependencies
 npm install
 
-# 3. Prepare database (generates prisma/dev.db)
-npx prisma db push
+# 3. Environment variables
+# Copy .env.example → .env
+# Example (NeonDB):
+DATABASE_URL="postgresql://<user>:<password>@<host>/<dbname>?sslmode=require"
 
-# 4. Run app
+# 4. Prepare database
+npx prisma migrate dev --name init
+npx prisma generate
+
+# (Optional) Inspect DB
+npx prisma studio
+
+# 5. Run app locally
 npm run dev
 # open http://localhost:3000
-
-# 5. Environment variables
-# Copy .env.example → .env
-DATABASE_URL="file:./dev.db"
-
-# 6. Requirements
-# All dependencies are listed in requirements.txt
-# Dependencies are also managed via package.json

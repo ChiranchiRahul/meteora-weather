@@ -64,17 +64,11 @@ export default function HistoryPage() {
           <button onClick={() => exportFmt("json")} className="border rounded px-3 py-2 text-sm">
             Export JSON
           </button>
-          <button onClick={() => exportFmt("csv")} className="border rounded px-3 py-2 text-sm">
-            CSV
-          </button>
           <button onClick={() => exportFmt("xml")} className="border rounded px-3 py-2 text-sm">
             XML
           </button>
           <button onClick={() => exportFmt("md")} className="border rounded px-3 py-2 text-sm">
             Markdown
-          </button>
-          <button onClick={() => exportFmt("pdf")} className="border rounded px-3 py-2 text-sm">
-            PDF
           </button>
         </div>
       </header>
